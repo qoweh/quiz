@@ -1,0 +1,7 @@
+spring:
+  application: { name: quiz }
+  datasource:
+    url: jdbc:mysql://localhost:3306/quiz
+    username: pilt
+    password: 0612
+    driver-class-name: com.mysql.cj.jdbc.Driver
