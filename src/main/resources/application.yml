@@ -2,6 +2,27 @@ spring:
   application: { name: quiz }
   datasource:
     url: jdbc:mysql://localhost:3306/quiz
-    username: pilt
-    password: 0612
+    username: root
+    password: Rlaalsdn0612!
     driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      init:
+        # Whether to pull models at startup-time and how.:(always, never, or if-not-exists)
+        pull-model-strategy: always
+        timeout: 30s
+        max-retries: 1
+      chat:
+        model: llama3.2:3b
+        options:
+          temperature: 0.7
+          top-p: 0.9
+
+#logging:
+#  level:
+#    com.zaxxer.hikari: DEBUG
