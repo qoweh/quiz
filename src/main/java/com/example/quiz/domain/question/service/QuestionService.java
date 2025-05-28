@@ -35,21 +35,23 @@ public class QuestionService {
     private final QuestionOptionRepository questionOptionRepository;
     private final QuestionAnswerRepository questionAnswerRepository;
 
-    /**
-     * 한 번에 n개 문제 생성 (배치 방식)
-     * @param count 생성할 문제 수
-     * @param topic 문제 주제
-     * @param difficulty 문제 난이도
-     * @return 생성된 문제 리스트
-     */
-    public List<QuestionDTO> generateQuizBatch(int count, String topic, Difficulty difficulty) {
+    // 한 번에 n개 문제 생성 (배치 방식)
+    public List<QuestionDTO> generateQuizBatch(Map<String, String> request) {
+        String topic = request.get("topic");
+        Difficulty difficulty = Difficulty.valueOf(request.get("difficulty").toUpperCase());
+        int count = Integer.parseInt(request.get("count"));
+        log.info("퀴즈 생성 요청 - 주제: {}, 난이도: {}, 개수: {}", count, topic, difficulty);
+
+        List<Question> questions = new ArrayList<>();
+        List<List<QuestionOption>> questionOptions = new ArrayList<>();
+
         log.info("퀴즈 배치 생성 시작: {}개, 주제: {}, 난이도: {}", count, topic, difficulty);
         Long setNumber = questionRepository.findMaxSetNumber();
         if (setNumber == null) {
             setNumber = 0L;
         }
 
-        try {
+        while (true) {
             String prompt = promptGenerator.createBatchPrompt(count, topic, difficulty);
             log.debug("프롬프트 생성 완료");
 
@@ -59,44 +61,25 @@ public class QuestionService {
             List<ParsedQuestionData> parsedDataList = responseParser.parseMultipleQuestions(aiResponse);
             log.debug("응답 파싱 완료: {}개", parsedDataList.size());
 
-            List<QuestionDTO> questions = new ArrayList<>();
             for (int i = 0; i < parsedDataList.size(); i++) {
-                try {
                     ParsedQuestionData data = parsedDataList.get(i);
                     validator.validate(data);
 
                     Question question = questionFactory.createQuestion(data, topic, difficulty, setNumber + 1);
-                    List<QuestionOption> questionOptions = questionFactory.createQuestionOption(data, question);
-
-                    questionRepository.save(question);
-                    questionOptionRepository.saveAll(questionOptions);
-
-                    questions.add(new QuestionDTO(question));
+                    questions.add(question);
+                    List<QuestionOption> questionOption = questionFactory.createQuestionOption(data, question);
+                    questionOptions.add(questionOption);
                     log.debug("{}번째 문제 생성 성공", i + 1);
-                } catch (Exception e) {
-                    log.error("{}번째 문제 생성 실패: {}", i + 1, e.getMessage());
-                    Question fallback = questionFactory.createFallbackQuestion(topic, difficulty, i + 1);
-//                    questionRepository.save(fallback);
-                    questions.add(new QuestionDTO(fallback));
-                }
             }
-
-            // 부족한 문제는 폴백으로 채움
-            while (questions.size() < count) {
-                int questionNumber = questions.size() + 1;
-                Question fallback = questionFactory.createFallbackQuestion(topic, difficulty, questionNumber);
-//                questionRepository.save(fallback);
-                questions.add(new QuestionDTO(fallback));
-                log.warn("{}번째 문제를 폴백으로 생성", questionNumber);
-            }
-
             log.info("퀴즈 배치 생성 완료: 총 {}개 문제", questions.size());
-            return questions.subList(0, Math.min(count, questions.size()));
-
-        } catch (Exception e) {
-            log.error("퀴즈 배치 생성 실패", e);
-            return questionFactory.createFallbackQuestions(count, topic, difficulty);
+            if (questions.size() == count) {
+                questionRepository.saveAll(questions);
+                questionOptions.stream()
+                        .map(questionOptionRepository::saveAll);
+                break;
+            }
         }
+        return questions.stream().map(QuestionDTO::new).collect(Collectors.toList());
     }
 
     public List<QuestionDTO> getRecentQuestions() {

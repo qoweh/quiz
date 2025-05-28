@@ -24,11 +24,8 @@ public class QuestionController {
      */
     @PostMapping("/generate")
     public ResponseEntity<List<QuestionDTO>> generateQuizzes(
-            @RequestParam String topic,
-            @RequestParam(defaultValue = "MEDIUM") Difficulty difficulty,
-            @RequestParam(defaultValue = "5") int count) {
-        log.info("퀴즈 생성 요청 - 주제: {}, 난이도: {}, 개수: {}", topic, difficulty, count);
-        return ResponseEntity.ok(questionService.generateQuizBatch(count, topic, difficulty));
+            @RequestBody Map<String, String> request) {
+        return ResponseEntity.ok(questionService.generateQuizBatch(request));
     }
     /**
      * 퀴즈 조회
