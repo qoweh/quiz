@@ -1,5 +1,5 @@
 # Introduction
-I made local web site to `solve the quiz` for practing to use spring MVC.
+I made tiny local web site to `solve the quiz` for practing to use spring MVC.
 
 |PAGE|PICTURE|INFO|
 |:--:|:--:|:--:|
