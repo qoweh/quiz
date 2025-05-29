@@ -63,8 +63,7 @@ public class QuestionService {
 
             for (int i = 0; i < parsedDataList.size(); i++) {
                     ParsedQuestionData data = parsedDataList.get(i);
-                    validator.validate(data);
-
+                    // validator.validate(data);
                     Question question = questionFactory.createQuestion(data, topic, difficulty, setNumber + 1);
                     questions.add(question);
                     List<QuestionOption> questionOption = questionFactory.createQuestionOption(data, question);
@@ -74,8 +73,12 @@ public class QuestionService {
             log.info("퀴즈 배치 생성 완료: 총 {}개 문제", questions.size());
             if (questions.size() == count) {
                 questionRepository.saveAll(questions);
+                questionOptions.forEach(questionOptionRepository::saveAll);
+                /* quetionsOption 저장하는 방법 2
                 questionOptions.stream()
-                        .map(questionOptionRepository::saveAll);
+                        .map(questionOptionRepository::saveAll)
+                        .collect(Collectors.toList());
+                 */
                 break;
             }
         }
