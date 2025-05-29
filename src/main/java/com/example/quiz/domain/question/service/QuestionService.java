@@ -58,6 +58,7 @@ public class QuestionService {
             String aiResponse = aiClient.generateQuestions(prompt);
             log.debug("AI 응답 수신 완료");
 
+//            System.out.println("AI 응답: " + aiResponse);
             List<ParsedQuestionData> parsedDataList = responseParser.parseMultipleQuestions(aiResponse);
             log.debug("응답 파싱 완료: {}개", parsedDataList.size());
 
@@ -85,6 +86,7 @@ public class QuestionService {
         return questions.stream().map(QuestionDTO::new).collect(Collectors.toList());
     }
 
+    /*
     public List<QuestionDTO> getRecentQuestions() {
         log.info("최근 퀴즈 조회 요청");
         Long recentSetNumber = questionRepository.findMaxSetNumber();
@@ -92,6 +94,23 @@ public class QuestionService {
         List<QuestionDTO> questionDTOs = questions.stream()
                 .map(QuestionDTO::new)
                 .collect(Collectors.toList());
+        log.info("총 {}개(set:{})의 퀴즈 조회 완료", questionDTOs.size(), recentSetNumber);
+        return questionDTOs;
+    }
+     */
+    public List<QuestionDTO> getRecentQuestions() {
+        log.info("최근 퀴즈 조회 요청");
+        Long recentSetNumber = questionRepository.findMaxSetNumber();
+        List<Question> questions = questionRepository.findAllBySetNumber(recentSetNumber);
+
+        List<QuestionDTO> questionDTOs = questions.stream()
+                .map(question -> {
+                    // 각 Question에 대해 별도로 options 조회
+                    List<QuestionOption> options = questionOptionRepository.findByQuestionId(question.getId());
+                    return new QuestionDTO(question, options); // 새로운 생성자 사용
+                })
+                .collect(Collectors.toList());
+
         log.info("총 {}개(set:{})의 퀴즈 조회 완료", questionDTOs.size(), recentSetNumber);
         return questionDTOs;
     }

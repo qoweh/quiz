@@ -59,6 +59,7 @@ public class QuestionPromptGenerator {
                   - 해설은 간단명료하게
                   - 다른 텍스트 없이 오직 JSON만 반환
                   - JSON 형식이 올바른지 확인
+                  - 마지막으로 강조하는데, JSON 형식의 파일만 주고 다른 텍스트는 절대 포함하지 말 것
             """, count, topic, difficultyKorean, count);
     }
 }

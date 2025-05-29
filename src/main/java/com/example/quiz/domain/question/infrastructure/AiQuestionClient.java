@@ -42,16 +42,10 @@ public class AiQuestionClient {
         }
     }
 
-    /**
-     * AI 서비스 테스트용 메서드
-     */
     public String test(String input) {
         return chatModel.call(input);
     }
 
-    /**
-     * AI 통신 예외
-     */
     public static class AiCommunicationException extends RuntimeException {
         public AiCommunicationException(String message) {
             super(message);
